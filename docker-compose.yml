@@ -1,0 +1,24 @@
+services:
+  db:
+    build:
+      context: ./db
+    environment:
+      POSTGRES_DB: organization_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://user:password@db/organization_db
+    command: >
+      sh -c "while ! nc -z db 5432; do sleep 0.1; done; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+volumes:
+  postgres_data:
